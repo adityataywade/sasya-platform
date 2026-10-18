@@ -1,0 +1,10 @@
+{
+  "name": "@sasya/firebase-client",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "index.js",
+  "dependencies": {
+    "firebase": "^13.0.0"
+  }
+}

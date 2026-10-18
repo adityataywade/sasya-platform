@@ -1,0 +1,1 @@
+{"name":"@sasya/portal-ui","version":"1.0.0","private":true,"type":"module","main":"index.js","dependencies":{"@sasya/auth-service":"1.0.0","@sasya/domain-models":"1.0.0","@sasya/shared-ui":"1.0.0","@sasya/telemetry-service":"1.0.0"}}

@@ -1,0 +1,31 @@
+{
+  "name": "sasya-platform",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Sasya Innovations — Multi-application platform for solar cleaning robot management",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:public": "npm run dev -w apps/public-site",
+    "dev:customer": "npm run dev -w apps/customer-portal",
+    "dev:partner": "npm run dev -w apps/partner-portal",
+    "dev:admin": "npm run dev -w apps/admin-portal",
+    "build:public": "npm run build -w apps/public-site",
+    "build:customer": "npm run build -w apps/customer-portal",
+    "build:partner": "npm run build -w apps/partner-portal",
+    "build:admin": "npm run build -w apps/admin-portal",
+    "build:all": "npm run build:public && npm run build:customer && npm run build:partner && npm run build:admin",
+    "preview:public": "npm run preview -w apps/public-site",
+    "preview:customer": "npm run preview -w apps/customer-portal",
+    "preview:partner": "npm run preview -w apps/partner-portal",
+    "preview:admin": "npm run preview -w apps/admin-portal",
+    "test:rules": "node firebase/database.rules.test.js",
+    "lint": "echo 'Lint configured — add ESLint when ready'"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "userProfiles": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('userRoles').child(auth.uid).val() === 'admin')",
+        ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.hasChildren(['uid', 'email'])",
+        ".validate": "newData.child('uid').val() === $uid"
+      }
+    },
+    "userRoles": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('userRoles').child(auth.uid).val() === 'admin')",
+        ".write": "auth != null && root.child('userRoles').child(auth.uid).val() === 'admin'",
+        ".validate": "newData.isString() && (newData.val() === 'customer' || newData.val() === 'partner' || newData.val() === 'admin')"
+      }
+    },
+    "robots": {
+      "$robotId": {
+        ".read": "auth != null && (root.child('userRoles').child(auth.uid).val() === 'admin' || root.child('customerRobotAccess').child(auth.uid).child($robotId).val() === true || root.child('partnerRobotAccess').child(auth.uid).child($robotId).val() === true)",
+        ".write": "auth != null && root.child('userRoles').child(auth.uid).val() === 'admin'",
+        ".validate": "newData.hasChildren(['robotId', 'status'])"
+      }
+    },
+    "robotLatest": {
+      "$robotId": {
+        ".read": "auth != null && (root.child('userRoles').child(auth.uid).val() === 'admin' || root.child('customerRobotAccess').child(auth.uid).child($robotId).val() === true || root.child('partnerRobotAccess').child(auth.uid).child($robotId).val() === true)",
+        ".write": "auth != null && root.child('userRoles').child(auth.uid).val() === 'admin'",
+        ".validate": "newData.hasChildren(['robotId', 'timestamp']) && newData.child('robotId').val() === $robotId && newData.child('timestamp').isNumber()"
+      }
+    },
+    "robotEvents": {
+      "$robotId": {
+        ".read": "auth != null && (root.child('userRoles').child(auth.uid).val() === 'admin' || root.child('customerRobotAccess').child(auth.uid).child($robotId).val() === true || root.child('partnerRobotAccess').child(auth.uid).child($robotId).val() === true)",
+        ".write": "auth != null && root.child('userRoles').child(auth.uid).val() === 'admin'"
+      }
+    },
+    "customerRobotAccess": {
+      "$uid": { ".read": "auth != null && (auth.uid === $uid || root.child('userRoles').child(auth.uid).val() === 'admin')", ".write": "auth != null && root.child('userRoles').child(auth.uid).val() === 'admin' || (auth != null && auth.uid === $uid && !data.exists())" }
+    },
+    "partnerRobotAccess": {
+      "$uid": { ".read": "auth != null && (auth.uid === $uid || root.child('userRoles').child(auth.uid).val() === 'admin')", ".write": "auth != null && root.child('userRoles').child(auth.uid).val() === 'admin'" }
+    },
+    "maintenanceTasks": {
+      "$taskId": {
+        ".read": "auth != null && (root.child('userRoles').child(auth.uid).val() === 'admin' || data.child('assignedPartner').val() === auth.uid)",
+        ".write": "auth != null && (root.child('userRoles').child(auth.uid).val() === 'admin' || (data.child('assignedPartner').val() === auth.uid && newData.child('assignedPartner').val() === auth.uid))"
+      }
+    },
+    "auditLogs": {
+      "$eventId": { ".read": "auth != null && root.child('userRoles').child(auth.uid).val() === 'admin'", ".write": "auth != null && root.child('userRoles').child(auth.uid).val() === 'admin'" }
+    }
+  }
+}

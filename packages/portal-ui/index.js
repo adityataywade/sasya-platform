@@ -1,4 +1,4 @@
-import { createSidebarNav, createDemoBanner, createStatCard, createStatusBadge } from '@sasya/shared-ui';
+import { createSidebarNav, createDemoBanner, createStatCard, createStatusBadge, ICONS } from '@sasya/shared-ui';
 import { DEMO_USERS, DEMO_ROBOTS, DEMO_TASKS, DEMO_SETUP_JOBS, USER_ROLES, getDemoRobotsForCustomer, getDemoRobotsForPartner, formatRelativeTime, formatTelemetryValue } from '@sasya/domain-models';
 import { getDemoUser, signInDemo, signOutDemo } from '@sasya/auth-service';
 import { createTelemetryService } from '@sasya/telemetry-service';
@@ -79,7 +79,7 @@ async function getLiveCustomerData() {
 
 function robotRow(robot) {
   const telemetry = robot.latestTelemetry;
-  return `<tr><td><strong>${robot.robotId}</strong><br><span class="muted">${robot.name}</span></td><td>${robot.installationSite}</td><td>${createStatusBadge({ status: robot.status })?.outerHTML || robot.status}</td><td>${formatTelemetryValue(telemetry?.batteryPercent, '%')}</td><td>${telemetry?.timestamp ? formatRelativeTime(telemetry.timestamp) : 'No data'}</td></tr>`;
+  return `<tr><td><strong>${robot.robotId}</strong><br><span class="muted">${robot.name}</span></td><td>${robot.installationSite}</td><td>${createStatusBadge(robot.status)?.outerHTML || robot.status}</td><td>${formatTelemetryValue(telemetry?.batteryPercent, '%')}</td><td>${telemetry?.timestamp ? formatRelativeTime(telemetry.timestamp) : 'No data'}</td></tr>`;
 }
 
 function login(app, role, mode) {
@@ -106,6 +106,63 @@ function login(app, role, mode) {
   });
 }
 
+function getCustomerPage() {
+  const page = window.location.hash.slice(1);
+  return ['dashboard', 'robots', 'history', 'profile'].includes(page) ? page : 'dashboard';
+}
+
+function renderCustomerPage(content, page, { user, robots, tasks }, mode, liveDataError) {
+  const counts = {
+    total: robots.length,
+    online: robots.filter((robot) => ['online', 'cleaning'].includes(robot.status)).length,
+    offline: robots.filter((robot) => robot.status === 'offline').length,
+    unknown: robots.filter((robot) => robot.status === 'unknown').length,
+  };
+  const heading = {
+    dashboard: `Welcome, ${user.name.split(' ')[0]}`,
+    robots: 'My robots',
+    history: 'History & maintenance',
+    profile: 'My profile',
+  }[page];
+  const pageIntro = {
+    dashboard: 'A quick overview of your assigned cleaning robots.',
+    robots: 'Monitor the current situation of every robot assigned to your account.',
+    history: 'Review maintenance assignments and recent operational alerts.',
+    profile: 'Manage and review your customer account details.',
+  }[page];
+
+  content.innerHTML = `<div class="portal-topbar"><div><span class="eyebrow">Customer Portal</span><h1>${heading}</h1><p class="page-intro">${pageIntro}</p></div><span class="data-mode-pill ${mode === 'firebase' ? 'is-live' : ''}">${mode === 'firebase' ? 'Live Firebase data' : 'Demo data'}</span></div>
+    ${liveDataError ? `<div class="notice warning">${liveDataError}</div>` : ''}
+    ${page === 'dashboard' ? `
+      <div class="stats-grid" id="stats"></div>
+      <div class="grid grid-2 customer-dashboard-cards">
+        <section class="card"><div class="section-heading-row"><div><h2>Robot health</h2><p class="muted">Your assigned fleet at a glance.</p></div><a class="text-link" href="#robots">View all robots</a></div><div class="dashboard-robot-list">${robots.slice(0, 3).map((robot) => `<div class="dashboard-robot-row"><div><strong>${robot.robotId}</strong><span class="muted">${robot.name}</span></div>${createStatusBadge(robot.status).outerHTML}</div>`).join('') || '<div class="empty-state">No robots assigned.</div>'}</div></section>
+        <section class="card"><div class="section-heading-row"><div><h2>Maintenance attention</h2><p class="muted">Items that may need your attention.</p></div><a class="text-link" href="#history">View history</a></div><div id="dashboard-task-list"></div></section>
+      </div>` : ''}
+    ${page === 'robots' ? `
+      <section class="card"><div class="portal-topbar"><div><h2>Robot situation</h2><p class="muted">Live status, battery and last update for your robots.</p></div><label class="search-field">${ICONS.search}<input id="robot-filter" placeholder="Search robots" aria-label="Search robots"></label></div><div class="table-wrap"><table><thead><tr><th>Robot</th><th>Site</th><th>Status</th><th>Battery</th><th>Last update</th></tr></thead><tbody id="robot-table"></tbody></table></div></section>` : ''}
+    ${page === 'history' ? `
+      <section class="card"><h2>Maintenance & alerts</h2><p class="muted">A record of maintenance work and operational events for your account.</p><div id="task-list"></div></section>
+      <section class="card history-note"><h2>Need help?</h2><p class="muted">Contact your assigned service partner if a robot needs inspection or maintenance.</p></section>` : ''}
+    ${page === 'profile' ? `
+      <section class="card profile-page"><div class="profile-page-heading"><div class="profile-avatar">${(user.name || 'U').charAt(0).toUpperCase()}</div><div><h2>${user.name}</h2><p class="muted">Customer account</p></div></div><div class="profile-details"><div><span class="profile-label">Name</span><strong>${user.name}</strong></div><div><span class="profile-label">Email</span><strong>${user.email}</strong></div><div><span class="profile-label">Role</span><strong>Customer</strong></div></div></section>` : ''}`;
+
+  if (page === 'dashboard') {
+    const stats = content.querySelector('#stats');
+    [['robot', 'Robots', counts.total], ['signal', 'Online / active', counts.online], ['alert', 'Offline', counts.offline], ['dashboard', 'Unknown', counts.unknown]].forEach(([icon, label, value]) => stats.append(createStatCard({ icon: `<span>${icon}</span>`, label, value, subtitle: mode === 'firebase' ? 'From Firebase records' : 'From demo records' })));
+    content.querySelector('#dashboard-task-list').innerHTML = tasks.slice(0, 3).map((task) => `<div class="task-row"><strong>${task.title || task.name}</strong><span class="muted">${task.description || task.site || 'Operational record'}</span>${createStatusBadge(task.status).outerHTML}</div>`).join('') || '<div class="empty-state">No current assignments.</div>';
+  }
+  if (page === 'robots') {
+    const table = content.querySelector('#robot-table');
+    const drawRows = (query = '') => { table.innerHTML = robots.filter((robot) => `${robot.robotId} ${robot.name} ${robot.installationSite}`.toLowerCase().includes(query.toLowerCase())).map(robotRow).join('') || '<tr><td colspan="5" class="empty-state">No robots match this search.</td></tr>'; };
+    drawRows();
+    content.querySelector('#robot-filter').addEventListener('input', (event) => drawRows(event.target.value));
+  }
+  if (page === 'history') {
+    content.querySelector('#task-list').innerHTML = tasks.map((task) => `<div class="task-row"><strong>${task.title || task.name}</strong><span class="muted">${task.description || task.site || 'Operational record'}</span>${createStatusBadge(task.status).outerHTML}</div>`).join('') || '<div class="empty-state">No maintenance records.</div>';
+  }
+}
+
 async function renderPortal(app, role, mode) {
   let data = roleData(role);
   let liveDataError = '';
@@ -125,23 +182,52 @@ async function renderPortal(app, role, mode) {
   }
   const { user, robots, tasks } = data;
   const counts = { total:robots.length, online:robots.filter((r) => ['online','cleaning'].includes(r.status)).length, offline:robots.filter((r) => r.status === 'offline').length, unknown:robots.filter((r) => r.status === 'unknown').length };
-  const sidebar = createSidebarNav({ portalName:labels[role], navItems:navs[role], currentPage:'dashboard', user, onSignOut: async () => { if (mode === 'firebase') await signOutFirebase(); else await signOutDemo(); sessionStorage.removeItem(`sasya-${role}-signed-in`); login(app, role, mode); } });
+  const currentPage = role === USER_ROLES.CUSTOMER ? getCustomerPage() : 'dashboard';
+  const sidebar = createSidebarNav({ portalName:labels[role], navItems:navs[role], currentPage, user, onSignOut: async () => { if (mode === 'firebase') await signOutFirebase(); else await signOutDemo(); sessionStorage.removeItem(`sasya-${role}-signed-in`); login(app, role, mode); } });
   const shell = document.createElement('div'); shell.className = 'portal-shell';
   const main = document.createElement('div'); main.className = 'portal-main';
   if (mode !== 'firebase') main.append(createDemoBanner());
   const content = document.createElement('main'); content.className = 'portal-content';
-  content.innerHTML = `<div class="portal-topbar"><div><span class="eyebrow">${labels[role]}</span><h1>${role === 'admin' ? 'Fleet overview' : `Welcome, ${user.name.split(' ')[0]}`}</h1></div><span class="status-badge ${mode === 'firebase' ? 'status-success' : 'status-warning'}">${mode === 'firebase' ? 'Live Firebase data' : 'Demo data'}</span></div>
+  if (role === USER_ROLES.CUSTOMER) {
+    renderCustomerPage(content, currentPage, data, mode, liveDataError);
+    navs.customer.forEach((item) => {
+      const link = sidebar.querySelector(`#sidebar-${item.id}`);
+      link?.addEventListener('click', (event) => {
+        event.preventDefault();
+        window.history.replaceState(null, '', item.id === 'dashboard' ? window.location.pathname : `#${item.id}`);
+        sidebar.querySelectorAll('.sidebar-menu-link').forEach((navLink) => navLink.classList.toggle('active', navLink === link));
+        renderCustomerPage(content, item.id, data, mode, liveDataError);
+      });
+    });
+    main.append(content);
+    shell.append(sidebar, main);
+    app.replaceChildren(shell);
+    return;
+  }
+  content.innerHTML = `<div class="portal-topbar"><div><span class="eyebrow">${labels[role]}</span><h1>${role === 'admin' ? 'Fleet overview' : `Welcome, ${user.name.split(' ')[0]}`}</h1></div><span class="data-mode-pill ${mode === 'firebase' ? 'is-live' : ''}">${mode === 'firebase' ? 'Live Firebase data' : 'Demo data'}</span></div>
     ${liveDataError ? `<div class="notice warning">${liveDataError}</div>` : ''}
     <div class="stats-grid" id="stats"></div>
-    <section class="card"><div class="portal-topbar"><div><h2>Robots in scope</h2><p class="muted">Only records permitted for this demo role are shown.</p></div><input id="robot-filter" placeholder="Search robots" aria-label="Search robots"></div><div class="table-wrap"><table><thead><tr><th>Robot</th><th>Site</th><th>Status</th><th>Battery</th><th>Last update</th></tr></thead><tbody id="robot-table"></tbody></table></div></section>
-    <div class="grid grid-2" style="margin-top:20px"><section class="card"><h2>${role === 'customer' ? 'Maintenance & alerts' : role === 'partner' ? 'Assigned work' : 'Recent alerts'}</h2><div id="task-list"></div></section><section class="card"><h2>Connectivity status</h2><div class="notice warning"><strong>${mode === 'firebase' ? 'Production Firebase connected.' : 'Demo mode.'}</strong> No live device connection is claimed. Firebase mode and ESP32 payload validation are available only after configuration.</div><p class="muted" style="margin-top:14px">Remote start, stop, movement, and cleaning commands are unavailable until the R&D team confirms a safe command protocol.</p></section></div>
+    <section class="card dashboard-section" id="robots"><div class="portal-topbar"><div><h2>Robots in scope</h2><p class="muted">Only records permitted for this ${role} role are shown.</p></div><label class="search-field">${ICONS.search}<input id="robot-filter" placeholder="Search robots" aria-label="Search robots"></label></div><div class="table-wrap"><table><thead><tr><th>Robot</th><th>Site</th><th>Status</th><th>Battery</th><th>Last update</th></tr></thead><tbody id="robot-table"></tbody></table></div></section>
+    <div class="grid grid-2 dashboard-section" id="history"><section class="card"><h2>${role === 'customer' ? 'Maintenance & alerts' : role === 'partner' ? 'Assigned work' : 'Recent alerts'}</h2><div id="task-list"></div></section><section class="card"><h2>Connectivity status</h2><div class="notice warning"><strong>${mode === 'firebase' ? 'Production Firebase connected.' : 'Demo mode.'}</strong> No live device connection is claimed. Firebase mode and ESP32 payload validation are available only after configuration.</div><p class="muted" style="margin-top:14px">Remote start, stop, movement, and cleaning commands are unavailable until the R&D team confirms a safe command protocol.</p></section></div>
+    ${role === 'customer' ? `<section class="card dashboard-section profile-section" id="profile"><div><span class="eyebrow">Account</span><h2>Your profile</h2><p class="muted">Customer access is scoped to the robots assigned to your account.</p></div><div class="profile-details"><div><span class="profile-label">Name</span><strong>${user.name}</strong></div><div><span class="profile-label">Email</span><strong>${user.email}</strong></div><div><span class="profile-label">Role</span><strong>Customer</strong></div></div></section>` : ''}
     ${role === 'admin' && mode === 'firebase' ? '<section class="card" style="margin-top:20px"><h2>Create robot</h2><p class="muted">Create a robot record in Firebase. Existing robot IDs cannot be overwritten.</p><form id="robot-create-form"><div class="grid grid-2"><div class="field"><label for="robot-id">Robot ID</label><input id="robot-id" value="SCR-001" pattern="[A-Za-z0-9_\\-]+" required></div><div class="field"><label for="robot-name">Robot name</label><input id="robot-name" value="Sasya Cleaning Robot 001" required></div><div class="field"><label for="installation-site">Installation site</label><input id="installation-site" value="Not assigned" required></div><div class="field"><label for="robot-model">Model</label><input id="robot-model" value="SCR" required></div><div class="field"><label for="firmware-version">Firmware version</label><input id="firmware-version" value="not-installed" required></div><div class="field"><label for="telemetry-interval">Telemetry interval (seconds)</label><input id="telemetry-interval" type="number" min="5" value="60" required></div><div class="field"><label for="battery-capacity">Battery capacity (%)</label><input id="battery-capacity" type="number" min="1" max="100" value="100" required></div><div class="field"><label for="water-capacity">Water tank capacity (litres)</label><input id="water-capacity" type="number" min="0" value="0" required></div></div><button class="btn btn-primary" type="submit" style="margin-top:14px">Create robot</button><div id="robot-create-status" class="notice" hidden style="margin-top:14px"></div></form></section><section class="card" style="margin-top:20px"><h2>Upload an image</h2><p class="muted">Images are stored in Cloudinary; the upload record is stored in Firebase.</p><form id="image-upload-form"><div class="field"><label for="image-file">Image file</label><input id="image-file" type="file" accept="image/jpeg,image/png,image/webp" required></div><button class="btn btn-primary" type="submit" style="margin-top:14px">Upload image</button><div id="image-upload-status" class="notice" hidden style="margin-top:14px"></div></form></section>' : ''}`;
   const stats = content.querySelector('#stats');
   [['robot', 'Robots', counts.total], ['signal', 'Online / active', counts.online], ['alert', 'Offline', counts.offline], ['dashboard', 'Unknown', counts.unknown]].forEach(([icon,label,value]) => stats.append(createStatCard({ icon: `<span>${icon}</span>`, label, value, subtitle: mode === 'firebase' ? 'Calculated from Firebase records' : 'Calculated from demo records' })));
   const table = content.querySelector('#robot-table');
   const drawRows = (query = '') => { table.innerHTML = robots.filter((robot) => `${robot.robotId} ${robot.name} ${robot.installationSite}`.toLowerCase().includes(query.toLowerCase())).map(robotRow).join('') || '<tr><td colspan="5" class="empty-state">No robots match this search.</td></tr>'; };
   drawRows(); content.querySelector('#robot-filter').addEventListener('input', (event) => drawRows(event.target.value));
-  content.querySelector('#task-list').innerHTML = tasks.slice(0, 5).map((task) => `<div style="padding:12px 0;border-bottom:1px solid var(--border)"><strong>${task.title || task.name}</strong><br><span class="muted">${task.description || task.site || 'Operational record'}</span> ${createStatusBadge({ status:task.status })?.outerHTML || ''}</div>`).join('') || '<div class="empty-state">No current assignments.</div>';
+  content.querySelector('#task-list').innerHTML = tasks.slice(0, 5).map((task) => `<div style="padding:12px 0;border-bottom:1px solid var(--border)"><strong>${task.title || task.name}</strong><br><span class="muted">${task.description || task.site || 'Operational record'}</span> ${createStatusBadge(task.status)?.outerHTML || ''}</div>`).join('') || '<div class="empty-state">No current assignments.</div>';
+  navs[role].forEach((item) => {
+    const link = sidebar.querySelector(`#sidebar-${item.id}`);
+    link?.addEventListener('click', (event) => {
+      const target = item.id === 'dashboard' ? content : content.querySelector(`#${item.id}`);
+      if (!target) return;
+      event.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      sidebar.querySelectorAll('.sidebar-menu-link').forEach((navLink) => navLink.classList.remove('active'));
+      link.classList.add('active');
+    });
+  });
   const uploadForm = content.querySelector('#image-upload-form');
   const robotForm = content.querySelector('#robot-create-form');
   if (robotForm) {

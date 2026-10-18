@@ -63,6 +63,8 @@ export function createFooter() {
         <div class="footer-links-group">
           <h3 class="footer-heading">REACH US</h3>
           <div class="footer-contact-info">
+            <p>Email: <a href="mailto:adityataywade.sasya@gmail.com">adityataywade.sasya@gmail.com</a></p>
+            <p>Instagram: <a href="https://www.instagram.com/aditya_taywade123" target="_blank" rel="noreferrer">@aditya_taywade123</a></p>
             <p>Address: <em>To be announced</em></p>
             <p class="footer-legal-links">
               <a href="#">Privacy Policy</a>

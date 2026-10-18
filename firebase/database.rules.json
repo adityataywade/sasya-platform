@@ -50,6 +50,15 @@
     },
     "auditLogs": {
       "$eventId": { ".read": "auth != null && root.child('userRoles').child(auth.uid).val() === 'admin'", ".write": "auth != null && root.child('userRoles').child(auth.uid).val() === 'admin'" }
+    },
+    "mediaUploads": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('userRoles').child(auth.uid).val() === 'admin')",
+        ".write": "auth != null && root.child('userRoles').child(auth.uid).val() === 'admin'",
+        "$uploadId": {
+          ".validate": "newData.hasChildren(['publicId', 'secureUrl', 'uploadedBy', 'uploadedAt']) && newData.child('uploadedBy').val() === $uid && newData.child('uploadedAt').isNumber()"
+        }
+      }
     }
   }
 }

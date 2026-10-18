@@ -72,6 +72,45 @@ export async function getDatabase() {
   return firebaseDb;
 }
 
+export async function signInWithFirebase(email, password) {
+  const auth = await getAuth();
+  if (!auth) throw new Error('Firebase is not configured.');
+
+  const { signInWithEmailAndPassword } = await import('firebase/auth');
+  const credential = await signInWithEmailAndPassword(auth, email.trim(), password);
+  const database = await getDatabase();
+  const { get, ref } = await import('firebase/database');
+  const roleSnapshot = await get(ref(database, `userRoles/${credential.user.uid}`));
+  const role = roleSnapshot.val();
+  if (typeof role !== 'string') {
+    await signOutFirebase();
+    throw new Error('Your account has no application role. Contact an administrator.');
+  }
+
+  return { user: credential.user, role };
+}
+
+export async function signOutFirebase() {
+  const auth = await getAuth();
+  if (!auth) return;
+  const { signOut } = await import('firebase/auth');
+  await signOut(auth);
+}
+
+export async function getCurrentFirebaseUser() {
+  const auth = await getAuth();
+  if (!auth) return null;
+  if (auth.currentUser) return auth.currentUser;
+
+  const { onAuthStateChanged } = await import('firebase/auth');
+  return new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe();
+      resolve(user);
+    });
+  });
+}
+
 /**
  * Read Firebase config from Vite environment variables.
  * Returns null if not configured.

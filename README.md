@@ -32,6 +32,8 @@ The repository includes [`.github/workflows/deploy-pages.yml`](./.github/workflo
 
 The public site's internal pages use hash navigation (for example `#/products`) so they work on GitHub Pages without a server rewrite. The portals currently run in demo mode and do not provide production authorization.
 
+For the ordered production migration, Firebase data contract, device security, and signed Cloudinary upload design, see [docs/PRODUCTION-MIGRATION.md](./docs/PRODUCTION-MIGRATION.md). Cloudinary API secrets must remain in a trusted backend; the browser client only uploads with a short-lived signature.
+
 ## Security and integration boundaries
 
 Roles must be provisioned by a trusted workflow; the demo sign-in is not production authentication. Device ingestion, device identity, command protocols, and exact sensor units remain pending R&D confirmation. Remote commands are intentionally unavailable. Do not add public database writes to make the demo work.

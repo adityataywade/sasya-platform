@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <h2>ESP8266 Sensor Dashboard</h2>
 
 <p>Device: <span id="device">Waiting...</span></p>
@@ -46,4 +47,52 @@ async function updateDashboard() {
 
 updateDashboard();
 setInterval(updateDashboard, 10000);
+=======
+<h2>ESP8266 Sensor Dashboard</h2>
+
+<p>Device: <span id="device">Waiting...</span></p>
+<p>Temperature: <span id="temperature">--</span> °C</p>
+<p>Humidity: <span id="humidity">--</span> %</p>
+<p>Status: <span id="status">Connecting...</span></p>
+
+<script>
+const databaseURL =
+  "https:/console.firebase.google.com/project/sasya-production/database/sasya-production-default-rtdb/data/sensorData/latest.json";
+
+async function updateDashboard() {
+  try {
+    const response = await fetch(databaseURL);
+
+    if (!response.ok) {
+      throw new Error("HTTP " + response.status);
+    }
+
+    const data = await response.json();
+
+    if (!data) {
+      document.getElementById("status").textContent =
+        "Waiting for ESP8266 data";
+      return;
+    }
+
+    document.getElementById("device").textContent =
+      data.device ?? "--";
+
+    document.getElementById("temperature").textContent =
+      data.temperature ?? "--";
+
+    document.getElementById("humidity").textContent =
+      data.humidity ?? "--";
+
+    document.getElementById("status").textContent = "Connected";
+  } catch (error) {
+    document.getElementById("status").textContent =
+      "Unable to load data";
+    console.error(error);
+  }
+}
+
+updateDashboard();
+setInterval(updateDashboard, 3000);
+>>>>>>> 1643a229a162f10301b0add713a37a898e979b6b
 </script>

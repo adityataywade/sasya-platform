@@ -5,7 +5,7 @@
 
 export { createHeader } from './components/header.js';
 export { createFooter } from './components/footer.js';
-export { createMobileMenu } from './components/mobile-menu.js';
+export { createMobileMenu, initMobileMenu } from './components/mobile-menu.js';
 export { createLoadingSpinner, createSkeletonCard } from './components/loading.js';
 export { createStatusBadge } from './components/status-badge.js';
 export { createModal, createConfirmDialog } from './components/modal.js';

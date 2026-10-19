@@ -1,5 +1,5 @@
 import '@sasya/shared-ui/styles.css';
-import { createHeader, createFooter, createMobileMenu } from '@sasya/shared-ui';
+import { createHeader, createFooter, createMobileMenu, initMobileMenu } from '@sasya/shared-ui';
 
 const pages = {
   home: {
@@ -16,11 +16,7 @@ const pages = {
   about: { title:'Curiosity with purpose.', intro:'Sasya Innovations is focused on useful technology, renewable energy, and careful engineering.', body:'<section class="section"><div class="container grid grid-2"><div class="card"><h3>Our direction</h3><p>Build technology that is understandable, maintainable, and grounded in real-world needs.</p></div><div class="card"><h3>Our values</h3><p>Curiosity, honesty about what is known, and respect for the people who use and maintain our systems.</p></div></div></section>' },
   products: { title:'Meet SCR-001', intro:'A solar-panel cleaning robot concept from Sasya Innovations, being shaped through careful research and engineering.', body:`<section class="product-page">
     <section class="product-hero-section"><div class="container product-page-intro"><div><span class="eyebrow">Our first product concept</span><h2>Cleaner panels.<br><em>More possibility.</em></h2><p>SCR-001 is a proposed robotic platform for solar-panel cleaning. We are developing the concept and validating the engineering before making production or performance promises.</p><a class="btn btn-primary" href="#estimate">Configure an estimate <span class="btn-arrow">↓</span></a></div><div class="product-badge"><span class="product-badge-line"></span><strong>SCR<br><b>001</b></strong><small>IN DEVELOPMENT</small></div></div></section>
-    <section class="section slider-section"><div class="container"><div class="section-heading-row public-section-heading"><div><span class="eyebrow">See the idea in motion</span><h2>From dusty to ready.</h2></div><div class="slider-controls"><button class="slider-arrow" id="slider-prev" type="button" aria-label="Previous slide">←</button><span id="slider-count">01 / 03</span><button class="slider-arrow" id="slider-next" type="button" aria-label="Next slide">→</button></div></div><div class="product-slider" id="product-slider" aria-live="polite">
-      <article class="product-slide is-active" data-slide="0"><div class="slide-art solar-cleaning-scene"><div class="scene-sun"></div><div class="scene-horizon"></div><div class="solar-panel"><div class="panel-grid"></div><div class="dust-layer"></div><div class="clean-lane"></div><div class="panel-glare"></div></div><div class="robot-shadow"></div><div class="cleaning-robot"><span class="robot-sensor"></span><span class="robot-roof"></span><span class="robot-brush"></span><i></i><i></i></div><div class="scene-copy"><small>01 / THE CHALLENGE</small><h3>Dust works against every ray.</h3><p>Watch SCR-001 travel across a solar surface, brushing away the layer that blocks clean energy.</p></div><span class="scene-label label-dirty">DUSTY SURFACE</span><span class="scene-label label-clean">CLEANING PATH</span></div></article>
-      <article class="product-slide" data-slide="1"><div class="slide-art solar-cleaning-scene scene-process"><div class="scene-sun"></div><div class="scene-horizon"></div><div class="solar-panel"><div class="panel-grid"></div><div class="dust-layer"></div><div class="clean-lane"></div><div class="panel-glare"></div></div><div class="robot-shadow"></div><div class="cleaning-robot"><span class="robot-sensor"></span><span class="robot-roof"></span><span class="robot-brush"></span><i></i><i></i></div><div class="scene-copy"><small>02 / THE PROCESS</small><h3>A considered path across the panel.</h3><p>Navigation, cleaning, sensing, and safety are being explored as one connected system.</p></div><span class="scene-label label-dirty">BEFORE</span><span class="scene-label label-clean">AFTER</span></div></article>
-      <article class="product-slide" data-slide="2"><div class="slide-art solar-cleaning-scene scene-result"><div class="scene-sun"></div><div class="scene-horizon"></div><div class="solar-panel"><div class="panel-grid"></div><div class="dust-layer"></div><div class="clean-lane"></div><div class="panel-glare"></div></div><div class="robot-shadow"></div><div class="cleaning-robot"><span class="robot-sensor"></span><span class="robot-roof"></span><span class="robot-brush"></span><i></i><i></i></div><div class="scene-copy"><small>03 / THE POSSIBILITY</small><h3>Keep clean energy moving.</h3><p>Every clean lane is a step toward more dependable solar infrastructure.</p></div><span class="scene-label label-dirty">DUST + SOILING</span><span class="scene-label label-clean">CLEARER PANEL</span></div></article>
-    </div><div class="slider-dots" id="slider-dots"><button class="is-active" data-slide-to="0" aria-label="Show slide 1"></button><button data-slide-to="1" aria-label="Show slide 2"></button><button data-slide-to="2" aria-label="Show slide 3"></button></div></div></section>
+    <section class="section slider-section"><div class="container"><div class="section-heading-row public-section-heading"><div><span class="eyebrow">See the idea in motion</span><h2>From dusty to ready.</h2></div></div><div class="product-slider product-video-slider" id="product-slider"><video class="product-video" controls autoplay muted loop playsinline preload="metadata" aria-label="SCR-001 solar panel cleaning robot concept in motion"><source src="./assets/slider video.mp4" type="video/mp4">Your browser does not support the product video.</video></div></div></section>
     <section class="section process-section"><div class="container"><div class="section-heading"><span class="eyebrow">How it is being shaped</span><h2>A product process built on proof.</h2></div><div class="process-grid"><article><span>01</span><h3>Understand the surface</h3><p>Panel dimensions, layout, angle, and site conditions inform the right configuration.</p></article><article><span>02</span><h3>Configure the robot</h3><p>Choose the operating assumptions and components that fit your solar installation.</p></article><article><span>03</span><h3>Review the estimate</h3><p>Receive a planning estimate, then talk with Sasya before any purchase decision.</p></article></div></div></section>
     <section class="section estimate-section" id="estimate"><div class="container estimate-layout"><div class="estimate-intro"><span class="eyebrow">Plan your configuration</span><h2>Get a starting estimate.</h2><p>Use your solar-panel details to explore a preliminary project estimate. This is not a quote, and final pricing will depend on validated specifications and a site discussion.</p><div class="estimate-note"><span>✦</span><p><strong>Early-stage planning tool</strong><br>SCR-001 is not commercially available yet.</p></div></div><form class="estimate-card" id="estimate-form"><div class="estimate-form-header"><strong>Configure SCR-001</strong><span>INR · estimated</span></div><div class="form-grid"><div class="field"><label for="panel-length">Panel length (m)</label><input id="panel-length" type="number" min="0.5" step="0.1" value="2" required></div><div class="field"><label for="panel-width">Panel width (m)</label><input id="panel-width" type="number" min="0.5" step="0.1" value="1" required></div><div class="field"><label for="panel-count">Number of panels</label><input id="panel-count" type="number" min="1" step="1" value="100" required></div><div class="field"><label for="installation">Installation setting</label><select id="installation"><option value="1">Standard ground / accessible roof</option><option value="1.12">Complex roof access (+12%)</option><option value="1.2">High-angle / specialist access (+20%)</option></select></div><div class="field full"><label for="cleaning-system">Cleaning system</label><select id="cleaning-system"><option value="0">Combined brush + water concept</option><option value="35000">Add water recovery module (+₹35,000)</option><option value="18000">Brush-first configuration (+₹18,000)</option></select></div></div><div class="estimate-total"><span>Preliminary estimate</span><strong id="estimate-total">₹2,85,000</strong><small>Includes concept robot configuration. Excludes tax, delivery, installation, and final engineering changes.</small></div><button class="btn btn-primary" type="submit">Prepare my enquiry <span class="btn-arrow">↗</span></button><div class="notice" id="estimate-status" hidden></div></form></div></section>
   </section>` },
@@ -30,6 +26,12 @@ const pages = {
 };
 
 function render() {
+  const routeHash = location.hash === '' || location.hash === '#/' || location.hash.startsWith('#/');
+  if (!routeHash) {
+    const target = document.getElementById(location.hash.slice(1));
+    target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
   const key = location.hash.replace(/^#\/?/, '').replace(/^\/+|\/+$/g, '') || 'home';
   const page = pages[key] || pages.home;
   document.title = `${page.title} — Sasya Innovations`;
@@ -54,8 +56,19 @@ function render() {
   footer.querySelectorAll('a[href^="/"]').forEach((link) => {
     link.href = `#${link.getAttribute('href')}`;
   });
-  app.append(main, footer);
-  createMobileMenu();
+  const mobileMenu = createMobileMenu({
+    currentPage: key,
+    navItems: [
+      { label:'HOME', href:'#/', id:'home' },
+      { label:'ABOUT', href:'#/about', id:'about' },
+      { label:'PRODUCTS', href:'#/products', id:'products' },
+      { label:'SASYA R&D', href:'#/rnd', id:'rnd' },
+      { label:'CAREERS', href:'#/careers', id:'careers' },
+      { label:'CONTACT', href:'#/contact', id:'contact' }
+    ]
+  });
+  app.append(main, footer, mobileMenu);
+  initMobileMenu();
   const instagram = footer.querySelector('a[aria-label="Instagram"]');
   if (instagram) { instagram.href = 'https://www.instagram.com/aditya_taywade123'; instagram.target = '_blank'; instagram.rel = 'noreferrer'; instagram.title = 'Follow Sasya Innovations on Instagram'; }
   const logo = document.createElement('img');
@@ -73,27 +86,8 @@ function render() {
   });
 }
 function setupProductPage() {
-  const slider = document.querySelector('#product-slider');
-  if (!slider) return;
-  const slides = [...slider.querySelectorAll('.product-slide')];
-  const dots = [...document.querySelectorAll('[data-slide-to]')];
-  const count = document.querySelector('#slider-count');
-  let current = 0;
-  let interval;
-  const showSlide = (index) => {
-    current = (index + slides.length) % slides.length;
-    slides.forEach((slide, slideIndex) => slide.classList.toggle('is-active', slideIndex === current));
-    dots.forEach((dot, dotIndex) => dot.classList.toggle('is-active', dotIndex === current));
-    count.textContent = `0${current + 1} / 0${slides.length}`;
-  };
-  const restart = () => { clearInterval(interval); interval = setInterval(() => showSlide(current + 1), 6000); };
-  document.querySelector('#slider-prev')?.addEventListener('click', () => { showSlide(current - 1); restart(); });
-  document.querySelector('#slider-next')?.addEventListener('click', () => { showSlide(current + 1); restart(); });
-  dots.forEach((dot) => dot.addEventListener('click', () => { showSlide(Number(dot.dataset.slideTo)); restart(); }));
-  slider.addEventListener('mouseenter', () => clearInterval(interval));
-  slider.addEventListener('mouseleave', restart);
-  restart();
   const estimateForm = document.querySelector('#estimate-form');
+  if (!estimateForm) return;
   const total = document.querySelector('#estimate-total');
   const inputs = ['panel-length', 'panel-width', 'panel-count', 'installation', 'cleaning-system'].map((id) => document.querySelector(`#${id}`));
   const updateEstimate = () => {

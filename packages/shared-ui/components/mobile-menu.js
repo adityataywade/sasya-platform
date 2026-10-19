@@ -24,7 +24,7 @@ export function createMobileMenu({ navItems = [], currentPage = '' } = {}) {
   overlay.innerHTML = `
     <div class="mobile-menu-panel" id="mobile-menu-panel" role="dialog" aria-label="Navigation menu">
       <div class="mobile-menu-header">
-        <a href="/" class="mobile-menu-logo" aria-label="Sasya Innovations Home">
+        <a href="#/" class="mobile-menu-logo" aria-label="Sasya Innovations Home">
           ${getSasyaLogoSVG(36)}
           <span class="mobile-menu-brand"><span class="logo-green">Sasya</span> Innovations</span>
         </a>
@@ -58,8 +58,6 @@ export function initMobileMenu() {
   const toggle = document.getElementById('mobile-menu-toggle');
   const overlay = document.getElementById('mobile-menu-overlay');
   const closeBtn = document.getElementById('mobile-menu-close');
-  const panel = document.getElementById('mobile-menu-panel');
-
   if (!toggle || !overlay) return;
 
   function openMenu() {
@@ -80,6 +78,10 @@ export function initMobileMenu() {
 
   toggle.addEventListener('click', openMenu);
   closeBtn?.addEventListener('click', closeMenu);
+
+  overlay.querySelectorAll('.mobile-menu-link, .mobile-menu-logo').forEach((link) => {
+    link.addEventListener('click', closeMenu);
+  });
 
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) closeMenu();

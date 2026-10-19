@@ -90,6 +90,25 @@ export async function signInWithFirebase(email, password) {
   return { user: credential.user, role };
 }
 
+export async function createFirebaseUser({ email, password, displayName }) {
+  const app = await getFirebaseApp();
+  if (!app) throw new Error('Firebase is not configured.');
+
+  const { initializeApp, deleteApp } = await import('firebase/app');
+  const { getAuth, createUserWithEmailAndPassword, updateProfile, signOut } = await import('firebase/auth');
+  const secondaryApp = initializeApp(app.options, `user-creation-${Date.now()}`);
+  const secondaryAuth = getAuth(secondaryApp);
+
+  try {
+    const credential = await createUserWithEmailAndPassword(secondaryAuth, email.trim(), password);
+    if (displayName?.trim()) await updateProfile(credential.user, { displayName: displayName.trim() });
+    await signOut(secondaryAuth);
+    return credential.user;
+  } finally {
+    await deleteApp(secondaryApp);
+  }
+}
+
 export async function signOutFirebase() {
   const auth = await getAuth();
   if (!auth) return;

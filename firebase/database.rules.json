@@ -5,7 +5,7 @@
     "userProfiles": {
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('userRoles').child(auth.uid).val() === 'admin')",
-        ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.hasChildren(['uid', 'email'])",
+        ".write": "auth != null && ((auth.uid === $uid && !data.exists() && newData.hasChildren(['uid', 'email'])) || root.child('userRoles').child(auth.uid).val() === 'admin')",
         ".validate": "newData.child('uid').val() === $uid"
       }
     },
@@ -36,11 +36,41 @@
         ".write": "auth != null && root.child('userRoles').child(auth.uid).val() === 'admin'"
       }
     },
+
+    "sensorData": {
+      "$sensorId": {
+        ".read": "auth != null && root.child('userRoles').child(auth.uid).val() === 'admin'",
+        ".write": "auth != null && root.child('userRoles').child(auth.uid).val() === 'admin'",
+        ".validate": "newData.hasChildren(['device', 'temperature', 'humidity']) && newData.child('device').isString() && newData.child('temperature').isNumber() && newData.child('humidity').isNumber()"
+      }
+    },
+
     "customerRobotAccess": {
       "$uid": { ".read": "auth != null && (auth.uid === $uid || root.child('userRoles').child(auth.uid).val() === 'admin')", ".write": "auth != null && root.child('userRoles').child(auth.uid).val() === 'admin' || (auth != null && auth.uid === $uid && !data.exists())" }
     },
     "partnerRobotAccess": {
-      "$uid": { ".read": "auth != null && (auth.uid === $uid || root.child('userRoles').child(auth.uid).val() === 'admin')", ".write": "auth != null && root.child('userRoles').child(auth.uid).val() === 'admin'" }
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('userRoles').child(auth.uid).val() === 'admin')",
+        "$robotId": {
+          ".write": "auth != null && (root.child('userRoles').child(auth.uid).val() === 'admin' || (auth.uid === $uid && newData.isString() && root.child('setupRequests').child(newData.val()).child('status').val() === 'accepted' && root.child('setupRequests').child(newData.val()).child('acceptedBy').val() === auth.uid && root.child('setupRequests').child(newData.val()).child('robotId').val() === $robotId))",
+          ".validate": "newData.val() === true || (newData.isString() && root.child('setupRequests').child(newData.val()).child('robotId').val() === $robotId)"
+        }
+      }
+    },
+    "setupRequests": {
+      "$requestId": {
+        ".read": "auth != null && (root.child('userRoles').child(auth.uid).val() === 'admin' || (data.child('status').val() === 'pending' && root.child('userRoles').child(auth.uid).val() === 'partner') || data.child('acceptedBy').val() === auth.uid)",
+        ".write": "auth != null && (root.child('userRoles').child(auth.uid).val() === 'admin' || (root.child('userRoles').child(auth.uid).val() === 'partner' && data.child('status').val() === 'pending' && newData.child('status').val() === 'accepted' && newData.child('acceptedBy').val() === auth.uid))",
+        ".validate": "newData.hasChildren(['requestId', 'robotId', 'status', 'createdAt']) && newData.child('status').val() === 'accepted' ? newData.hasChildren(['acceptedBy', 'acceptedAt']) : newData.child('status').val() === 'pending'"
+      }
+    },
+    "partnerNotifications": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('userRoles').child(auth.uid).val() === 'admin')",
+        "$requestId": {
+          ".write": "auth != null && root.child('userRoles').child(auth.uid).val() === 'admin'"
+        }
+      }
     },
     "maintenanceTasks": {
       "$taskId": {

@@ -92,6 +92,8 @@ button { cursor: pointer; }
 .table-wrap { overflow:auto; }
 table { width:100%; border-collapse:collapse; }
 th, td { text-align:left; padding:14px 12px; border-bottom:1px solid var(--border); white-space:nowrap; font-size:.86rem; }
+.robot-select-row { cursor:pointer; }
+.robot-select-row:hover, .robot-select-row:focus { background:#f5faf3; outline:none; }
 th { color:var(--muted); font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; }
 .status-badge { display:inline-flex; padding:5px 9px; border-radius:999px; font-size:.72rem; font-weight:700; text-transform:capitalize; background:#edf2f7; color:var(--muted); }
 .status-online, .status-cleaning, .status-healthy, .status-completed { background:#e6f6ed; color:#267346; }

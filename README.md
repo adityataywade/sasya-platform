@@ -9,6 +9,9 @@ This workspace contains four independently buildable vanilla JavaScript/Vite app
 
 The shared packages provide domain models, validation, Firebase initialization, telemetry providers, authentication helpers, and UI components. With no Firebase environment variables, each portal runs in explicitly labelled demo mode using the fixture records.
 
+For a plain-language map of the folders, important files, and request flow, see
+[docs/PROJECT-GUIDE.md](./docs/PROJECT-GUIDE.md).
+
 ## Development
 
 ```bash
@@ -30,7 +33,9 @@ The repository includes [`.github/workflows/deploy-pages.yml`](./.github/workflo
 - `https://YOUR-USER.github.io/YOUR-REPOSITORY/partner/` — setup partner portal
 - `https://YOUR-USER.github.io/YOUR-REPOSITORY/admin/` — SCR Control Hub
 
-The public site's internal pages use hash navigation (for example `#/products`) so they work on GitHub Pages without a server rewrite. The portals currently run in demo mode and do not provide production authorization.
+The public site's internal pages use hash navigation (for example `#/products`) so they work on GitHub Pages without a server rewrite. The customer and admin portals use Firebase Realtime Database when `VITE_DATA_MODE=firebase` and the Firebase environment variables are present. The live telemetry cards currently associate the direct `sensorData` payload with `SCR-001`, while also supporting robot-specific and nested `latest` records during migration. Add future robot branches such as `sensorData/SCR-002`; the cards can then be switched to that robot ID. Telemetry includes ESP8266 distance, temperature, humidity, motor, PWM, and Wi-Fi fields; authentication and deployed database rules remain required for production access.
+
+The current ESP8266 sketch writes its single robot payload directly to `/sensorData`; the portals associate that payload with `SCR-001` until robot-specific branches are introduced. Ensure the sketch `DATABASE_URL` points to the same Sasya Firebase project configured in the portal environment. The sketch currently does not upload a device name, timestamp, or Wi-Fi field, so the UI reports the device as ESP8266, shows receipt time locally, and labels Wi-Fi as “Not sent” rather than inventing a hardware status.
 
 For the ordered production migration, Firebase data contract, device security, and signed Cloudinary upload design, see [docs/PRODUCTION-MIGRATION.md](./docs/PRODUCTION-MIGRATION.md). Cloudinary API secrets must remain in a trusted backend; the browser client only uploads with a short-lived signature.
 

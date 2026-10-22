@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SCR-001 telemetry</title>
+  <style>
+    body { font: 16px system-ui, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; color: #1a2e44; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+    .card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; }
+    .label { color: #718096; font-size: 12px; text-transform: uppercase; }
+    .value { font-size: 24px; font-weight: 700; margin-top: 8px; }
+    #status { font-weight: 700; }
+  </style>
+</head>
+<body>
+  <h1>SCR-001 telemetry</h1>
+  <p>Reading the ESP8266 payload from <code>/sensorData</code>.</p>
+  <p>Status: <span id="status">Connecting...</span></p>
+  <div class="grid">
+    <div class="card"><div class="label">Distance</div><div class="value"><span id="distance">--</span> cm</div></div>
+    <div class="card"><div class="label">Temperature</div><div class="value"><span id="temperature">--</span> °C</div></div>
+    <div class="card"><div class="label">Humidity</div><div class="value"><span id="humidity">--</span> %</div></div>
+    <div class="card"><div class="label">Motor</div><div class="value" id="motor">--</div></div>
+    <div class="card"><div class="label">Motor state</div><div class="value" id="motor-state">--</div></div>
+    <div class="card"><div class="label">Motor PWM</div><div class="value" id="motor-pwm">--</div></div>
+    <div class="card"><div class="label">Uptime</div><div class="value"><span id="uptime">--</span> ms</div></div>
+  </div>
+
+  <script>
+    const databaseURL = "https://sasya-production-default-rtdb.firebaseio.com/sensorData.json";
+    const UPLOAD_TIMEOUT_MS = 10000;
+    const value = (data, key) => data[key] === null || data[key] === undefined ? "--" : data[key];
+    let lastUptime = null;
+    let lastFreshAt = 0;
+
+    async function updateDashboard() {
+      const status = document.getElementById("status");
+      try {
+        const response = await fetch(databaseURL);
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        const data = await response.json();
+        if (!data) {
+          status.textContent = "Waiting for SCR-001 data";
+          return;
+        }
+        if (lastUptime === null) {
+          lastUptime = data.uptime_ms;
+        } else if (data.uptime_ms !== lastUptime) {
+          lastUptime = data.uptime_ms;
+          lastFreshAt = Date.now();
+        }
+        if (!lastFreshAt || Date.now() - lastFreshAt > UPLOAD_TIMEOUT_MS) {
+          status.textContent = "Disconnected — no recent ESP8266 upload";
+          ["distance", "temperature", "humidity", "motor", "motor-state", "motor-pwm", "uptime"]
+            .forEach((id) => document.getElementById(id).textContent = "--");
+          return;
+        }
+        document.getElementById("distance").textContent = value(data, "distance_cm");
+        document.getElementById("temperature").textContent = value(data, "temperature_c");
+        document.getElementById("humidity").textContent = value(data, "humidity_percent");
+        document.getElementById("motor").textContent = data.motor_running === true ? "Running" : data.motor_running === false ? "Stopped" : "--";
+        document.getElementById("motor-state").textContent = value(data, "motor_state");
+        document.getElementById("motor-pwm").textContent = value(data, "motor_pwm");
+        document.getElementById("uptime").textContent = value(data, "uptime_ms");
+        status.textContent = "ESP8266 data received";
+      } catch (error) {
+        status.textContent = "Unable to load SCR-001 data";
+        console.error(error);
+      }
+    }
+
+    updateDashboard();
+    setInterval(updateDashboard, 3000);
+  </script>
+</body>
+</html>

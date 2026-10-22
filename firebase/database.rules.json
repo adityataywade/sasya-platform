@@ -38,10 +38,11 @@
     },
 
     "sensorData": {
-      "$sensorId": {
-        ".read": "auth != null && root.child('userRoles').child(auth.uid).val() === 'admin'",
-        ".write": "auth != null && root.child('userRoles').child(auth.uid).val() === 'admin'",
-        ".validate": "newData.hasChildren(['device', 'temperature', 'humidity']) && newData.child('device').isString() && newData.child('temperature').isNumber() && newData.child('humidity').isNumber()"
+      ".read": "auth != null && (root.child('userRoles').child(auth.uid).val() === 'admin' || root.child('userRoles').child(auth.uid).val() === 'customer' || root.child('userRoles').child(auth.uid).val() === 'partner')",
+      ".write": "auth != null && root.child('userRoles').child(auth.uid).val() === 'admin'",
+      ".validate": "newData.hasChildren()",
+      "$robotId": {
+        ".validate": "$robotId === 'device' || $robotId === 'distance_cm' || $robotId === 'temperature_c' || $robotId === 'humidity_percent' || $robotId === 'motor_pwm' || $robotId === 'motor_running' || $robotId === 'motor_state' || $robotId === 'wifi_connected' || $robotId === 'timestamp' || newData.hasChildren(['temperature_c', 'humidity_percent']) && newData.child('temperature_c').isNumber() && newData.child('humidity_percent').isNumber()"
       }
     },
 
